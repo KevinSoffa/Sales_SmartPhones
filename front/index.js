@@ -24,7 +24,7 @@ app.engine('.hbs', hbs.engine);
 app.set('view engine', '.hbs');
 app.set('views', path.join(__dirname, 'views'));
 
-// 2. Servir arquivos estáticos (Bootstrap, Chart.js, CSS customizado)
+// 2. Arquivos estáticos (Bootstrap, Chart.js, CSS customizado)
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/bootstrap', express.static(path.join(__dirname, 'node_modules/bootstrap/dist')));
 app.use('/chart.js', express.static(path.join(__dirname, 'node_modules/chart.js/dist')));
@@ -65,10 +65,10 @@ app.get('/', async (req, res) => {
             totalQuantitySold = totals.quantity;
 
             // *** LINHAS DE DEBUG ***
-            console.log('--- DEBUG ---');
-            console.log(`Receita Calculada: ${totalRevenue}`);
-            console.log(`Quantidade Total: ${totalQuantitySold}`);
-            console.log('---------------');
+            // console.log('--- DEBUG ---');
+            // console.log(`Receita Calculada: ${totalRevenue}`);
+            // console.log(`Quantidade Total: ${totalQuantitySold}`);
+            // console.log('---------------');
         }
 
         // Prepara os dados agregados para o Gráfico de Barras
