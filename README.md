@@ -8,9 +8,9 @@
 
 1. [Descrição](#descrição-)
 2. [Tecnologias](#tecnologias)
-3. [Desenvolvimento](#desenvolvimento-)
-4. [Configuração do Ambiente](#-configuração-do-ambiente)
-5. [Modo de Uso](#modo-de-uso-)
+3. [Desenvolvimento](#desenvolvimento)
+4. [Configuração do Ambiente](#configuração-do-ambiente)
+5. [Modo de Uso](#modo-de-uso)
 
 ---
 ## Descrição 📝
@@ -38,7 +38,7 @@ O projeto percorre todas as etapas do ciclo de dados — desde o tratamento e tr
 - `Outros: Swagger, HTML5, CSS3`
 
 ## Desenvolvimento 👨‍💻
-<img src="" height="400" alt="python logo"/>
+<img src="https://raw.githubusercontent.com/KevinSoffa/Sales_SmartPhones/refs/heads/master/img/engenheiro%20de%20dados.drawio.png" height="250" alt="python logo"/>
 
 ---
 #### ✅ETL e Tratamento de Dados [ Python | Pandas | PySpark | PostgreSQL  ]
