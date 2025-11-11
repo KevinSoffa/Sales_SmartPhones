@@ -1,0 +1,1 @@
+from .consultar_vendas_repository import SalesRepository

@@ -1,0 +1,1 @@
+from .consultar_vendas_service import listar_vendas_service

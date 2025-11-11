@@ -1,0 +1,1 @@
+from .utils.sql_select import executar_select
