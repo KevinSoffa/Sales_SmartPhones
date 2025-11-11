@@ -1,0 +1,42 @@
+# Dependências
+# Ignora a pasta de módulos de dependências do Node.js
+/node_modules
+
+# Logs
+# Arquivos de log de debug ou execução
+/npm-debug.log
+/.npm
+/*.log
+/log/
+
+# Arquivos de Build Temporários
+# Pastas de build que podem ser geradas
+/dist
+/build
+/temp
+
+# Arquivos Locais de Configuração e Ambiente
+# Variáveis de ambiente secretas (se você as tiver)
+.env
+.env.local
+.env.development
+.env.production
+
+# IDEs e Editores
+# Arquivos de configurações de ambiente de desenvolvimento
+# VS Code
+.vscode/
+
+# Configuração do NPM
+# Cache, etc.
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store
+
+# Arquivos de Teste
+/coverage
+
+# Outros
+*.tsbuildinfo

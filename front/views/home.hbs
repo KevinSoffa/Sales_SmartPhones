@@ -1,0 +1,214 @@
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">📈Análise de Vendas de Smartphones</h1>
+    </div>
+
+    {{#if error}}
+        <div class="col-12">
+            <div class="alert alert-danger" role="alert">
+                <strong>Erro ao conectar com a API:</strong> {{error}}
+            </div>
+        </div>
+    {{else}}
+        <div class="col-md-4 mb-4">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <h5 class="card-title">📱Total de Registros de Vendas</h5>
+                    <p class="card-text fs-1">{{salesCount}}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <h5 class="card-title">💰Receita Total (R$)</h5>
+                    <p class="card-text fs-1">{{totalRevenue}}</p> 
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card text-white bg-info">
+                <div class="card-body">
+                    <h5 class="card-title">🛒Unidades Totais Vendidas</h5>
+                    <p class="card-text fs-1">{{totalQuantitySold}}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-12 mt-4">
+            <div class="card shadow-sm mb-5">
+                <div class="card-header">
+                    Vendas Agregadas por Smartphone (Unidades Vendidas)
+                </div>
+                <div class="card-body">
+                    <canvas id="salesChart" width="400" height="150"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-12 mt-4">
+            <div class="card shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    Variação de Vendas e Preço por Data
+                    <select id="productSelector" class="form-select w-50">
+                        <option value="" disabled selected>Selecione um Smartphone</option>
+                        {{#each uniqueProducts}}
+                            <option value="{{this}}">{{this}}</option>
+                        {{/each}}
+                    </select>
+                </div>
+                <div class="card-body">
+                    <canvas id="timeSeriesChart" width="400" height="150"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <script>
+            // Recebe os dados brutos COMPLETO do servidor
+            const rawData = {{{rawSalesData}}};
+            
+            let timeSeriesChartInstance = null;
+            
+            // Função auxiliar para gerar cores (do Gráfico de Barras)
+            function generateColors(count) {
+                const colors = [];
+                for (let i = 0; i < count; i++) {
+                    const r = Math.floor(Math.random() * 255);
+                    const g = Math.floor(Math.random() * 255);
+                    const b = Math.floor(Math.random() * 255);
+                    colors.push(`rgba(${r}, ${g}, ${b}, 0.6)`);
+                }
+                return colors;
+            }
+
+            document.addEventListener('DOMContentLoaded', () => {
+                // Inicialização do Gráfico de Barras (Gráfico 1)
+                const productNamesJSON = {{{productNames}}};
+                const quantitiesJSON = {{{quantities}}};
+                const ctxBar = document.getElementById('salesChart').getContext('2d');
+                new Chart(ctxBar, {
+                    type: 'bar',
+                    data: {
+                        labels: productNamesJSON,
+                        datasets: [{
+                            label: 'Unidades Vendidas',
+                            data: quantitiesJSON,
+                            backgroundColor: generateColors(productNamesJSON.length),
+                            borderWidth: 1
+                        }]
+                    },
+                    options: { responsive: true, scales: { y: { beginAtZero: true } } }
+                });
+
+                // --- Lógica de Atualização do Gráfico de Linha (Gráfico 2) ---
+                const selector = document.getElementById('productSelector');
+                selector.addEventListener('change', () => {
+                    const selectedProduct = selector.value;
+                    updateTimeSeriesChart(selectedProduct);
+                });
+            });
+
+            /**
+             * Filtra os dados, calcula Vendas e Preço Médio, e atualiza o gráfico de linha (Dual Y-Axes).
+             * @param {string} productName Nome do celular selecionado.
+             */
+            function updateTimeSeriesChart(productName) {
+                // 1. FILTRAR e AGRUPAR os dados para o produto selecionado
+                const salesByDate = rawData
+                    .filter(sale => sale.name === productName)
+                    .reduce((acc, sale) => {
+                        const date = sale.sale_date; 
+                        
+                        if (!acc[date]) {
+                            acc[date] = { totalQuantity: 0, totalRevenue: 0 };
+                        }
+                        
+                        acc[date].totalQuantity += sale.quantity_sold;
+                        acc[date].totalRevenue += (sale.price * sale.quantity_sold);
+                        
+                        return acc;
+                    }, {});
+
+                // 2. PREPARAR os arrays ordenados para o Chart.js
+                const dates = Object.keys(salesByDate).sort();
+                
+                const quantitiesSold = dates.map(date => salesByDate[date].totalQuantity);
+                
+                // Calcula o Preço Médio Ponderado por dia 
+                const averagePrices = dates.map(date => {
+                    const data = salesByDate[date];
+                    return data.totalQuantity > 0 ? (data.totalRevenue / data.totalQuantity).toFixed(2) : 0;
+                });
+
+
+                // 3. DESTRUIR e RECRIAR/ATUALIZAR o gráfico
+                const ctxLine = document.getElementById('timeSeriesChart').getContext('2d');
+                
+                if (timeSeriesChartInstance) {
+                    timeSeriesChartInstance.destroy();
+                }
+
+                timeSeriesChartInstance = new Chart(ctxLine, {
+                    type: 'line',
+                    data: {
+                        labels: dates, // Eixo X: Datas
+                        datasets: [
+                            {
+                                label: 'Unidades Vendidas',
+                                data: quantitiesSold, // Eixo Y: Quantidade Vendida
+                                yAxisID: 'y1', // Usa o eixo Y esquerdo
+                                fill: false,
+                                borderColor: 'rgb(75, 192, 192)',
+                                tension: 0.1
+                            },
+                            {
+                                label: 'Preço Médio (R$)',
+                                data: averagePrices, // Eixo Y: Preço Médio
+                                yAxisID: 'y2', // Usa o eixo Y direito
+                                fill: false,
+                                borderColor: 'rgb(255, 99, 132)',
+                                tension: 0.1
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false,
+                        },
+                        stacked: false,
+                        scales: {
+                            // Eixo Y ESQUERDO para QUANTIDADE
+                            y1: { 
+                                type: 'linear',
+                                display: true,
+                                position: 'left',
+                                title: { display: true, text: 'Unidades Vendidas' },
+                                beginAtZero: true
+                            },
+                            // Eixo Y DIREITO para PREÇO
+                            y2: { 
+                                type: 'linear',
+                                display: true,
+                                position: 'right',
+                                title: { display: true, text: 'Preço Médio (R$)' },
+                                grid: { drawOnChartArea: false }, 
+                                ticks: {
+                                    callback: function(value, index, ticks) {
+                                        return 'R$ ' + parseFloat(value).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+                                    }
+                                }
+                            },
+                            x: {
+                                title: { display: true, text: 'Data da Venda' }
+                            }
+                        }
+                    }
+                });
+            }
+        </script>
+    {{/if}}
+</div>
